@@ -4,11 +4,12 @@ version = "0.1.1"
 
 dependencies=[
     "open_clip_torch",
-    "timm",
+    "transformers",
+    "timm>=0.9.8",
     "ftfy",
     "regex",
     "tqdm",
-    "clip @ git+https://github.com/openai/CLIP.git",
+    "clip @ git+https://gitee.com/TheVeryDarkness/CLIP.git",
     "nerfstudio>=0.3.1"
 ]
 
@@ -19,3 +20,4 @@ include = ["lerf*"]
 lerf = 'lerf.lerf_config:lerf_method'
 lerf_big = 'lerf.lerf_config:lerf_method_big'
 lerf_lite = 'lerf.lerf_config:lerf_method_lite'
+lerf_siglip = 'lerf.lerf_config:lerf_method_siglip'
