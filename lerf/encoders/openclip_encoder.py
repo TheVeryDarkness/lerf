@@ -60,10 +60,10 @@ class OpenCLIPNetwork(BaseImageEncoder):
 
         assert (
             self.pos_embeds.shape[1] == self.neg_embeds.shape[1]
-        ), "Positive and negative embeddings must have the same dimensionality"
+        ), "Positive and negative embeddings must have the same dimensionality ({self.pos_embeds.shape[1]} and {self.neg_embeds.shape[1]})"
         assert (
             self.pos_embeds.shape[1] == self.clip_n_dims
-        ), "Embedding dimensionality must match the model dimensionality"
+        ), f"Embedding dimensionality {self.pos_embeds.shape[1]} must match the model dimensionality {self.clip_n_dims}"
 
     @property
     def name(self) -> str:
