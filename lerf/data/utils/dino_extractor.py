@@ -30,7 +30,9 @@ class ViTExtractor:
         """
         :param model_type: A string specifying the type of model to extract from.
                           [dino_vits8 | dino_vits16 | dino_vitb8 | dino_vitb16 | vit_small_patch8_224 |
-                          vit_small_patch16_224 | vit_base_patch8_224 | vit_base_patch16_224]
+                          vit_small_patch16_224 | vit_base_patch8_224 | vit_base_patch16_224 |
+                          dinov2_vits14 | dinov2_vitm14 | dinov2_vitl14 | dinov2_vitg14 |
+                          dinov2_vits14_reg | dinov2_vitm14_reg | dinov2_vitl14_reg | dinov2_vitg14_reg]
         :param stride: stride of first convolution layer. small stride -> higher resolution.
         :param model: Optional parameter. The nn.Module to extract from instead of creating a new one in ViTExtractor.
                       should be compatible with model_type.
@@ -61,11 +63,14 @@ class ViTExtractor:
         """
         :param model_type: a string specifying which model to load. [dino_vits8 | dino_vits16 | dino_vitb8 |
                            dino_vitb16 | vit_small_patch8_224 | vit_small_patch16_224 | vit_base_patch8_224 |
-                           vit_base_patch16_224]
+                           vit_base_patch16_224 | dinov2_vits14 | dinov2_vitm14 | dinov2_vitl14 | dinov2_vitg14 |
+                           dinov2_vits14_reg | dinov2_vitm14_reg | dinov2_vitl14_reg | dinov2_vitg14_reg]
         :return: the model
         """
-        if 'dino' in model_type:
+        if 'dinov2' in model_type:
             model = torch.hub.load('facebookresearch/dino:main', model_type)
+        elif 'dino' in model_type:
+            model = torch.hub.load('facebookresearch/dinov2:main', model_type)
         else:  # model from timm -- load weights from timm to dino model (enables working on arbitrary size images).
             temp_model = timm.create_model(model_type, pretrained=True)
             model_type_dict = {
