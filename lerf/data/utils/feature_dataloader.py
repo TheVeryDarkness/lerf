@@ -34,7 +34,7 @@ class FeatureDataloader(ABC):
     def load(self):
         cache_info_path = self.cache_path.with_suffix(".info")
         if not cache_info_path.exists():
-            raise FileNotFoundError
+            raise FileNotFoundError(cache_info_path)
         with open(cache_info_path, "r") as f:
             cfg = json.loads(f.read())
         if cfg != self.cfg:
