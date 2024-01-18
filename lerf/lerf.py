@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Type
+from typing import Dict, List, Tuple, Type, Union
 
 import numpy as np
 import open_clip
@@ -52,11 +52,12 @@ class LERFModel(NerfactoModel):
             clip_n_dims=self.image_encoder.embedding_dim,
         )
 
-    def get_max_across(self, ray_samples, weights, hashgrid_field, scales_shape, preset_scales=None):
+    def get_max_across(self, ray_samples, weights, hashgrid_field, scales_shape, preset_scales: Union[torch.Tensor, None]=None):
         # TODO smoothen this out
         if preset_scales is not None:
             assert len(preset_scales) == len(self.image_encoder.positives)
-            scales_list = torch.tensor(preset_scales)
+            # scales_list = torch.tensor(preset_scales)
+            scales_list = preset_scales.clone().detach()
         else:
             scales_list = torch.linspace(0.0, self.config.max_scale, self.config.n_scales)
 
