@@ -15,8 +15,8 @@ from lerf.encoders.image_encoder import BaseImageEncoder, BaseImageEncoderConfig
 @dataclass
 class CLIPNetworkConfig(BaseImageEncoderConfig):
     _target: Type = field(default_factory=lambda: CLIPNetwork)
-    clip_model_type: str = "ViT-B/16"
-    clip_n_dims: int = 512
+    clip_model_type: str = None # = "ViT-B/16"
+    clip_n_dims: int = None # = 512
     negatives: Tuple[str] = ("object", "things", "stuff", "texture")
 
 
