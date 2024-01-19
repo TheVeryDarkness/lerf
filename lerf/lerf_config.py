@@ -45,7 +45,7 @@ lerf_method = MethodSpecification(
                 num_lerf_samples=24,
             ),
             network=OpenCLIPNetworkConfig(
-                clip_model_type="ViT-B-16", clip_model_pretrained="laion2b_s34b_b88k", clip_n_dims=512
+                clip_model_type="EVA02-B-16", clip_model_pretrained="merged2b_s8b_b131k", clip_n_dims=512
             ),
             #  You can swap the type of input encoder by specifying different NetworkConfigs, the one below uses OpenAI CLIP, the one above uses OpenCLIP
             # network=CLIPNetworkConfig(
@@ -96,7 +96,7 @@ lerf_method_big = MethodSpecification(
                 num_lerf_samples=32,
             ),
             network=OpenCLIPNetworkConfig(
-                clip_model_type="ViT-L-14", clip_model_pretrained="laion2b_s32b_b82k", clip_n_dims=768
+                clip_model_type="EVA02-L-14", clip_model_pretrained="merged2b_s4b_b131k", clip_n_dims=768
             ),
         ),
         optimizers={
@@ -143,7 +143,7 @@ lerf_method_lite = MethodSpecification(
                 num_lerf_samples=12,
             ),
             network=OpenCLIPNetworkConfig(
-                clip_model_type="ViT-B-16", clip_model_pretrained="laion2b_s34b_b88k", clip_n_dims=512
+                clip_model_type="EVA02-B-16", clip_model_pretrained="laion2b_s34b_b88k", clip_n_dims=512
             ),
         ),
         optimizers={
