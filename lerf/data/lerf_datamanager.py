@@ -35,6 +35,7 @@ from rich.progress import Console
 CONSOLE = Console(width=120)
 
 from lerf.data.utils.dino_dataloader import DinoDataloader
+from lerf.data.utils.sam_dataloader import SamDataloader
 from lerf.data.utils.pyramid_embedding_dataloader import PyramidEmbeddingDataloader
 from lerf.encoders.image_encoder import BaseImageEncoder
 from nerfstudio.data.datamanagers.base_datamanager import VanillaDataManager, VanillaDataManagerConfig
@@ -82,12 +83,19 @@ class LERFDataManager(VanillaDataManager):  # pylint: disable=abstract-method
         cache_dir = f"outputs/{self.config.dataparser.data.name}"
         clip_cache_path = Path(osp.join(cache_dir, f"clip_{self.image_encoder.name}"))
         dino_cache_path = Path(osp.join(cache_dir, "dino.npy"))
+        sam_cache_path = Path(osp.join(cache_dir, "sam.npy"))
         # NOTE: cache config is sensitive to list vs. tuple, because it checks for dict equality
         self.dino_dataloader = DinoDataloader(
             image_list=images,
             device=self.device,
             cfg={"image_shape": list(images.shape[2:4])},
             cache_path=dino_cache_path,
+        )
+        self.sam_dataloader = SamDataloader(
+            image_list=images,
+            device=self.device,
+            cfg={"image_shape": list(images.shape[2:4])},
+            cache_path=sam_cache_path,
         )
         torch.cuda.empty_cache()
         self.clip_interpolator = PyramidEmbeddingDataloader(
@@ -114,6 +122,7 @@ class LERFDataManager(VanillaDataManager):  # pylint: disable=abstract-method
         ray_bundle = self.train_ray_generator(ray_indices)
         batch["clip"], clip_scale = self.clip_interpolator(ray_indices)
         batch["dino"] = self.dino_dataloader(ray_indices)
+        batch["sam"] = self.sam_dataloader(ray_indices)
         ray_bundle.metadata["clip_scales"] = clip_scale
         # assume all cameras have the same focal length and image width
         ray_bundle.metadata["fx"] = self.train_dataset.cameras[0].fx.item()

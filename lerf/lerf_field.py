@@ -65,7 +65,21 @@ class LERFField(Field):
 
         self.dino_net = tcnn.Network(
             n_input_dims=tot_out_dims,
-            n_output_dims=384, # See size of batch["dino"]
+            # See size of batch["dino"]
+            n_output_dims=384,
+            network_config={
+                "otype": "CutlassMLP",
+                "activation": "ReLU",
+                "output_activation": "None",
+                "n_neurons": 256,
+                "n_hidden_layers": 1,
+            },
+        )
+
+        self.sam_net = tcnn.Network(
+            n_input_dims=tot_out_dims,
+            # See size of batch["sam"]
+            n_output_dims=384,
             network_config={
                 "otype": "CutlassMLP",
                 "activation": "ReLU",
@@ -109,6 +123,9 @@ class LERFField(Field):
 
         dino_pass = self.dino_net(x).view(*ray_samples.frustums.shape, -1)
         outputs[LERFFieldHeadNames.DINO] = dino_pass
+
+        sam_pass = self.sam_net(x).view(*ray_samples.frustums.shape, -1)
+        outputs[LERFFieldHeadNames.SAM] = sam_pass
 
         return outputs
 
