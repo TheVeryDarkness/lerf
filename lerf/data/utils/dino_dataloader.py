@@ -30,14 +30,23 @@ class DinoDataloader(FeatureDataloader):
 
         dino_embeds = []
         for image in tqdm(preproc_image_lst, desc="dino", total=len(image_list), leave=False):
+            print("C * H * W =", image.size())
+            image = image.unsqueeze(0)
+            if False: # Dino v2
+                P = 14
+                _, C, H, W = image.size()
+                image = torch.nn.functional.interpolate(image, (H // P * P, W // P * P))
             with torch.no_grad():
                 descriptors = extractor.extract_descriptors(
-                    image.unsqueeze(0),
+                    image,
                     [self.dino_layer],
                     self.dino_facet,
                     self.dino_bin,
                 )
+            print("1 * T * D =", descriptors.size())
             descriptors = descriptors.reshape(extractor.num_patches[0], extractor.num_patches[1], -1)
+            # descriptors = torch.nn.functional.interpolate(descriptors, (extractor.num_patches[0], extractor.num_patches[1]))
+            print("1 * (T / P) * (D / P) =", descriptors.size())
             dino_embeds.append(descriptors.cpu().detach())
 
         self.data = torch.stack(dino_embeds, dim=0)

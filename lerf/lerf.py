@@ -223,6 +223,7 @@ class LERFModel(NerfactoModel):
                 outputs["clip"], batch["clip"], delta=1.25, reduction="none"
             )
             loss_dict["clip_loss"] = unreduced_clip.sum(dim=-1).nanmean()
+            print(outputs["dino"].size(), batch["dino"].size())
             unreduced_dino = torch.nn.functional.mse_loss(outputs["dino"], batch["dino"], reduction="none")
             loss_dict["dino_loss"] = unreduced_dino.sum(dim=-1).nanmean()
         return loss_dict
