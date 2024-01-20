@@ -7,9 +7,12 @@ from tqdm import tqdm
 
 
 class DinoDataloader(FeatureDataloader):
-    dino_model_type = "dino_vits8"
-    dino_stride = 8
-    dino_load_size = 500
+    dino_model_type: str = "dino_vits8"
+    dino_stride: int = 8
+    # dino_model_type = "dinov2_vitb14_reg"
+    # dino_stride = 14
+    # 994, 738
+    dino_load_size: typing.Union[int, typing.Tuple[int, int]] = 500
     dino_layer = 11
     dino_facet = "key"
     dino_bin = False
