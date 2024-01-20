@@ -5,6 +5,8 @@ version = "0.1.1"
 dependencies=[
     "open_clip_torch",
     "transformers",
+    "xformers",
+    "torch==2.0.0",
     "timm>=0.9.8",
     "ftfy",
     "regex",
