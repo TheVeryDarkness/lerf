@@ -79,7 +79,7 @@ class LERFField(Field):
         self.sam_net = tcnn.Network(
             n_input_dims=tot_out_dims,
             # See size of batch["sam"]
-            n_output_dims=384,
+            n_output_dims=256,
             network_config={
                 "otype": "CutlassMLP",
                 "activation": "ReLU",
