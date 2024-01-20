@@ -26,7 +26,7 @@ class ViTExtractor:
     d - the embedding dimension in the ViT.
     """
 
-    def __init__(self, model_type: str = 'dino_vits8', stride: int = 4, model: nn.Module = None, device: str = 'cuda'):
+    def __init__(self, model_type: str, stride: int, model: nn.Module = None, device: str = 'cuda'):
         """
         :param model_type: A string specifying the type of model to extract from.
                           [dino_vits8 | dino_vits16 | dino_vitb8 | dino_vitb16 | vit_small_patch8_224 |
@@ -47,7 +47,10 @@ class ViTExtractor:
         self.model = ViTExtractor.patch_vit_resolution(self.model, stride=stride)
         self.model.eval()
         self.model.to(self.device)
-        self.p = self.model.patch_embed.patch_size
+        patch_size = self.model.patch_embed.patch_size
+        if type(patch_size) == tuple and len(patch_size) == 2 and patch_size[0] == patch_size[1]:
+            patch_size = patch_size[0]
+        self.p = patch_size
         self.stride = self.model.patch_embed.proj.stride
 
         self.mean = (0.485, 0.456, 0.406) if "dino" in self.model_type else (0.5, 0.5, 0.5)
@@ -68,9 +71,9 @@ class ViTExtractor:
         :return: the model
         """
         if 'dinov2' in model_type:
-            model = torch.hub.load('facebookresearch/dino:main', model_type)
-        elif 'dino' in model_type:
             model = torch.hub.load('facebookresearch/dinov2:main', model_type)
+        elif 'dino' in model_type:
+            model = torch.hub.load('facebookresearch/dino:main', model_type)
         else:  # model from timm -- load weights from timm to dino model (enables working on arbitrary size images).
             temp_model = timm.create_model(model_type, pretrained=True)
             model_type_dict = {
@@ -87,13 +90,16 @@ class ViTExtractor:
         return model
 
     @staticmethod
-    def _fix_pos_enc(patch_size: int, stride_hw: Tuple[int, int]):
+    def _fix_pos_enc(patch_size: Union[int, Tuple[int, int]], stride_hw: Tuple[int, int]):
         """
         Creates a method for position encoding interpolation.
         :param patch_size: patch size of the model.
         :param stride_hw: A tuple containing the new height and width stride respectively.
         :return: the interpolation method
         """
+        if type(patch_size) == int:
+            patch_size = [patch_size, patch_size]
+        patch_size: Tuple[int, int]
         def interpolate_pos_encoding(self, x: torch.Tensor, w: int, h: int) -> torch.Tensor:
             npatch = x.shape[1] - 1
             N = self.pos_embed.shape[1] - 1
@@ -103,8 +109,8 @@ class ViTExtractor:
             patch_pos_embed = self.pos_embed[:, 1:]
             dim = x.shape[-1]
             # compute number of tokens taking stride into account
-            w0 = 1 + (w - patch_size) // stride_hw[1]
-            h0 = 1 + (h - patch_size) // stride_hw[0]
+            w0 = 1 + (w - patch_size[0]) // stride_hw[1]
+            h0 = 1 + (h - patch_size[1]) // stride_hw[0]
             assert (w0 * h0 == npatch), f"""got wrong grid size for {h}x{w} with patch_size {patch_size} and 
                                             stride {stride_hw} got {h0}x{w0}={h0 * w0} expecting {npatch}"""
             # we add a small number to avoid floating point error in the interpolation
@@ -131,10 +137,13 @@ class ViTExtractor:
         :return: the adjusted model
         """
         patch_size = model.patch_embed.patch_size
+        if type(patch_size) == tuple and len(patch_size) == 2 and patch_size[0] == patch_size[1]:
+            patch_size = patch_size[0]
         if stride == patch_size:  # nothing to do
             return model
 
         stride = nn_utils._pair(stride)
+        assert type(patch_size) in [int, float], f"{patch_size} is not a valid patch size."
         assert all([(patch_size // s_) * s_ == patch_size for s_ in
                     stride]), f'stride {stride} should divide patch_size {patch_size}'
 
@@ -160,6 +169,7 @@ class ViTExtractor:
         prep = transforms.Compose([
             # transforms.ToTensor(),
             transforms.Resize(load_size, antialias=None),
+            # transforms.CenterCrop(load_size),
             transforms.Normalize(mean=self.mean, std=self.std)
         ])
         prep_img = prep(image)[None, ...]
@@ -232,6 +242,9 @@ class ViTExtractor:
         _ = self.model(batch)
         self._unregister_hooks()
         self.load_size = (H, W)
+        # assert (H - self.p) % self.stride[0] == 0, f"{H - self.p} can't be divided by {self.stride[0]}"
+        # assert (W - self.p) % self.stride[1] == 0, f"{W - self.p} can't be divided by {self.stride[1]}"
+        # self.num_patches = ((H) // self.stride[0], (W) // self.stride[1])
         self.num_patches = (1 + (H - self.p) // self.stride[0], 1 + (W - self.p) // self.stride[1])
         return self._feats
 
@@ -296,7 +309,7 @@ class ViTExtractor:
         assert facet in ['key', 'query', 'value', 'token'], f"""{facet} is not a supported facet for descriptors. 
                                                              choose from ['key' | 'query' | 'value' | 'token'] """
         self._extract_features(batch, layer, facet)
-        x = torch.concat(self._feats)
+        x = torch.concat(self._feats) # B * H * T * D
         # if facet == 'token':
         #     x.unsqueeze_(dim=1) #Bx1xtxd
         if not include_cls:
