@@ -192,7 +192,7 @@ lerf_method_siglip = MethodSpecification(
                 num_lerf_samples=24,
             ),
             network=OpenCLIPNetworkConfig(
-                clip_model_type="ViT-B-16-SigLIP", clip_model_pretrained="webli", clip_n_dims=768
+                clip_model_type="ViT-SO400M-14-SigLIP", clip_model_pretrained="webli", clip_n_dims=1152
             ),
             #  You can swap the type of input encoder by specifying different NetworkConfigs, the one below uses OpenAI CLIP, the one above uses OpenCLIP
             # network=CLIPNetworkConfig(
