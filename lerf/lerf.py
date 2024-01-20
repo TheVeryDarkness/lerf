@@ -182,6 +182,7 @@ class LERFModel(NerfactoModel):
             ray_bundle.metadata["override_scales"] = best_scales
             outputs = self.forward(ray_bundle=ray_bundle)
             # standard nerfstudio concatting
+            # print(outputs.keys())
             for output_name, output in outputs.items():  # type: ignore
                 if output_name == "best_scales":
                     continue
@@ -227,11 +228,11 @@ class LERFModel(NerfactoModel):
             )
             loss_dict["clip_loss"] = unreduced_clip.sum(dim=-1).nanmean()
 
-            print(outputs["dino"].size(), batch["dino"].size())
+            assert outputs["dino"].size() == batch["dino"].size(), f'{outputs["dino"].size()} != {batch["dino"].size()}'
             unreduced_dino = torch.nn.functional.mse_loss(outputs["dino"], batch["dino"], reduction="none")
             loss_dict["dino_loss"] = unreduced_dino.sum(dim=-1).nanmean()
 
-            print(outputs["sam"].size(), batch["sam"].size())
+            assert outputs["sam"].size() == batch["sam"].size(), f'{outputs["sam"].size()} != {batch["sam"].size()}'
             unreduced_sam = torch.nn.functional.mse_loss(outputs["sam"], batch["sam"], reduction="none")
             loss_dict["sam_loss"] = unreduced_sam.sum(dim=-1).nanmean()
         return loss_dict
